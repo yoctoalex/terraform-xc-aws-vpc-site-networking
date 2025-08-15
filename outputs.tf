@@ -47,7 +47,7 @@ output "outside_security_group_id" {
   value       = module.aws_vpc_sg.outside_security_group_id
   description = "The ID of the outside security group."
 }
-  
+
 output "inside_security_group_id" {
   value       = module.aws_vpc_sg.inside_security_group_id
   description = "The ID of the inside security group."

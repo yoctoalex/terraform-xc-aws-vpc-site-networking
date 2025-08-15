@@ -106,7 +106,7 @@ resource "aws_ec2_managed_prefix_list" "tcp_80" {
   max_entries    = local.tcp_80_443_total_entries
 
   dynamic "entry" {
-    for_each =local.americas_tcp_80_443_range
+    for_each = local.americas_tcp_80_443_range
     content {
       description = "Americas IPv4 Subnet Ranges"
       cidr        = entry.value
@@ -138,7 +138,7 @@ resource "aws_ec2_managed_prefix_list" "tcp_80" {
 
 resource "aws_ec2_managed_prefix_list" "tcp_443" {
   count = var.create_outside_security_group ? 1 : 0
-  
+
   name           = format("%sXC Cloud TCP 443 IPv4 Subnet Ranges", local.prefix)
   address_family = "IPv4"
   max_entries    = local.tcp_80_443_total_entries
@@ -234,7 +234,7 @@ resource "aws_security_group" "outside" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [ data.aws_vpc.this.cidr_block ]
+    cidr_blocks = [data.aws_vpc.this.cidr_block]
   }
 
   ingress {
@@ -242,26 +242,26 @@ resource "aws_security_group" "outside" {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    prefix_list_ids = [ aws_ec2_managed_prefix_list.tcp_80[0].id ]
+    prefix_list_ids = [aws_ec2_managed_prefix_list.tcp_80[0].id]
   }
 
   ingress {
-    description = "TCP 443 IPv4 Subnet Ranges"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    prefix_list_ids = [ aws_ec2_managed_prefix_list.tcp_443[0].id ]
+    description     = "TCP 443 IPv4 Subnet Ranges"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    prefix_list_ids = [aws_ec2_managed_prefix_list.tcp_443[0].id]
   }
 
   dynamic "ingress" {
     for_each = var.create_udp_security_group_rules ? [0] : []
 
     content {
-      description = "UDP 4500 IPv4 Subnet Ranges"
-      from_port   = 4500
-      to_port     = 4500
-      protocol    = "udp"
-      prefix_list_ids = [ aws_ec2_managed_prefix_list.udp_4500[0].id ]
+      description     = "UDP 4500 IPv4 Subnet Ranges"
+      from_port       = 4500
+      to_port         = 4500
+      protocol        = "udp"
+      prefix_list_ids = [aws_ec2_managed_prefix_list.udp_4500[0].id]
     }
   }
 
@@ -291,10 +291,10 @@ resource "aws_security_group" "inside" {
   }
 
   ingress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = [ data.aws_vpc.this.cidr_block ]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [data.aws_vpc.this.cidr_block]
   }
 
   tags = merge(

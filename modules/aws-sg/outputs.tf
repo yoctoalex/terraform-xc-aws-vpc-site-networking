@@ -12,7 +12,7 @@ output "outside_security_group_id" {
   value       = var.create_outside_security_group ? aws_security_group.outside[0].id : null
   description = "The ID of the outside security group."
 }
-  
+
 output "inside_security_group_id" {
   value       = var.create_inside_security_group ? aws_security_group.inside[0].id : null
   description = "The ID of the inside security group."

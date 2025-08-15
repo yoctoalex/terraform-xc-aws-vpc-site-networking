@@ -10,24 +10,24 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  create_vpc                = (null == var.existing_vpc_id)
-  create_outside_subnet     = local.outside_subnets_len > 0
-  create_local_subnet       = local.local_subnets_len > 0
-  create_inside_subnet      = local.inside_subnets_len > 0
-  create_workload_subnet    = local.workload_subnets_len > 0
-  outside_subnets_len       = length(var.outside_subnets)
-  local_subnets_len         = length(var.local_subnets)
-  inside_subnets_len        = length(var.inside_subnets)
-  workload_subnets_len      = length(var.workload_subnets)
-  vpc_name                  = var.name != null ? var.name : format("%s-vpc", random_string.random.result)
-  vpc_id                    = var.existing_vpc_id != null ? var.existing_vpc_id : aws_vpc.this[0].id
-  az_names                  = length(var.az_names) > 0 ? var.az_names : slice(data.aws_availability_zones.available.names, 0, max(local.outside_subnets_len, local.local_subnets_len, local.inside_subnets_len, local.workload_subnets_len))
+  create_vpc             = (null == var.existing_vpc_id)
+  create_outside_subnet  = local.outside_subnets_len > 0
+  create_local_subnet    = local.local_subnets_len > 0
+  create_inside_subnet   = local.inside_subnets_len > 0
+  create_workload_subnet = local.workload_subnets_len > 0
+  outside_subnets_len    = length(var.outside_subnets)
+  local_subnets_len      = length(var.local_subnets)
+  inside_subnets_len     = length(var.inside_subnets)
+  workload_subnets_len   = length(var.workload_subnets)
+  vpc_name               = var.name != null ? var.name : format("%s-vpc", random_string.random.result)
+  vpc_id                 = var.existing_vpc_id != null ? var.existing_vpc_id : aws_vpc.this[0].id
+  az_names               = length(var.az_names) > 0 ? var.az_names : slice(data.aws_availability_zones.available.names, 0, max(local.outside_subnets_len, local.local_subnets_len, local.inside_subnets_len, local.workload_subnets_len))
 }
 
 # Derived toggles to ensure resources are created only when needed
 locals {
-  outside_rt_needed                   = (local.outside_subnets_len > 0 || local.local_subnets_len > 0)
-  create_outside_route_table_actual   = var.create_outside_route_table && local.outside_rt_needed
+  outside_rt_needed                 = (local.outside_subnets_len > 0 || local.local_subnets_len > 0)
+  create_outside_route_table_actual = var.create_outside_route_table && local.outside_rt_needed
 }
 
 resource "aws_vpc" "this" {
@@ -40,7 +40,7 @@ resource "aws_vpc" "this" {
   enable_network_address_usage_metrics = var.vpc_enable_network_address_usage_metrics
 
   tags = merge(
-    { 
+    {
       Name = local.vpc_name
     },
     var.tags,
@@ -50,9 +50,9 @@ resource "aws_vpc" "this" {
 resource "aws_subnet" "outside" {
   count = local.create_outside_subnet ? local.outside_subnets_len : 0
 
-  availability_zone = element(local.az_names, count.index)
-  cidr_block        = element(var.outside_subnets, count.index)
-  vpc_id            = local.vpc_id
+  availability_zone       = element(local.az_names, count.index)
+  cidr_block              = element(var.outside_subnets, count.index)
+  vpc_id                  = local.vpc_id
   map_public_ip_on_launch = var.map_public_ip_outside
 
   tags = merge(
@@ -70,9 +70,9 @@ resource "aws_subnet" "outside" {
 resource "aws_subnet" "local" {
   count = local.create_local_subnet ? local.local_subnets_len : 0
 
-  availability_zone = element(local.az_names, count.index)
-  cidr_block        = element(var.local_subnets, count.index)
-  vpc_id            = local.vpc_id
+  availability_zone       = element(local.az_names, count.index)
+  cidr_block              = element(var.local_subnets, count.index)
+  vpc_id                  = local.vpc_id
   map_public_ip_on_launch = var.map_public_ip_local
 
   tags = merge(
@@ -90,9 +90,9 @@ resource "aws_subnet" "local" {
 resource "aws_subnet" "inside" {
   count = local.create_inside_subnet ? local.inside_subnets_len : 0
 
-  availability_zone = element(local.az_names, count.index)
-  cidr_block        = element(var.inside_subnets, count.index)
-  vpc_id            = local.vpc_id
+  availability_zone       = element(local.az_names, count.index)
+  cidr_block              = element(var.inside_subnets, count.index)
+  vpc_id                  = local.vpc_id
   map_public_ip_on_launch = var.map_public_ip_inside
 
   tags = merge(
@@ -102,17 +102,17 @@ resource "aws_subnet" "inside" {
     var.tags,
   )
 
-  depends_on = [ 
+  depends_on = [
     aws_vpc.this,
-   ]
+  ]
 }
 
 resource "aws_subnet" "workload" {
   count = local.create_workload_subnet ? local.workload_subnets_len : 0
 
-  availability_zone = element(local.az_names, count.index)
-  cidr_block        = element(var.workload_subnets, count.index)
-  vpc_id            = local.vpc_id
+  availability_zone       = element(local.az_names, count.index)
+  cidr_block              = element(var.workload_subnets, count.index)
+  vpc_id                  = local.vpc_id
   map_public_ip_on_launch = var.map_public_ip_workload
 
   tags = merge(
@@ -122,9 +122,9 @@ resource "aws_subnet" "workload" {
     var.tags,
   )
 
-  depends_on = [ 
+  depends_on = [
     aws_vpc.this,
-   ]
+  ]
 }
 
 resource "aws_route_table" "outside" {
@@ -133,13 +133,13 @@ resource "aws_route_table" "outside" {
   vpc_id = local.vpc_id
 
   tags = merge(
-    { 
+    {
       Name = format("%s-outside-rt", local.vpc_name)
     },
     var.tags,
   )
 
-  depends_on = [ 
+  depends_on = [
     aws_vpc.this,
   ]
 }
@@ -172,7 +172,7 @@ resource "aws_internet_gateway" "this" {
   vpc_id = local.vpc_id
 
   tags = merge(
-    { 
+    {
       Name = format("%s-igw", local.vpc_name)
     },
     var.tags,
@@ -198,7 +198,7 @@ resource "aws_default_security_group" "default" {
     var.tags,
   )
 
-  depends_on = [ 
+  depends_on = [
     aws_vpc.this,
   ]
 }
