@@ -16,6 +16,9 @@ locals {
     "185.94.143.0/25",
     "159.60.190.0/24",
     "159.60.168.0/24",
+    "159.60.180.0/24",
+    "159.60.174.0/24",
+    "159.60.176.0/24",
   ]
   europe_tcp_80_443_range = [
     "5.182.213.0/25",
@@ -27,6 +30,8 @@ locals {
     "159.60.160.0/24",
     "159.60.162.0/24",
     "159.60.188.0/24",
+    "159.60.182.0/24",
+    "159.60.178.0/24",
   ]
   asia_tcp_80_443_range = [
     "103.135.56.0/25",
@@ -38,6 +43,11 @@ locals {
     "159.60.189.0/24",
     "159.60.166.0/24",
     "159.60.164.0/24",
+    "159.60.170.0/24",
+    "159.60.172.0/24",
+    "159.60.191.0/24",
+    "159.60.184.0/24",
+    "159.60.186.0/24",
   ]
   americas_udp_4500_range = [
     "5.182.215.0/25",
@@ -47,6 +57,10 @@ locals {
     "185.94.142.0/25",
     "185.94.143.0/25",
     "159.60.190.0/24",
+    "159.60.168.0/24",
+    "159.60.180.0/24",
+    "159.60.174.0/24",
+    "159.60.176.0/24",
   ]
   europe_udp_4500_range = [
     "5.182.213.0/25",
@@ -58,6 +72,8 @@ locals {
     "159.60.160.0/24",
     "159.60.162.0/24",
     "159.60.188.0/24",
+    "159.60.182.0/24",
+    "159.60.178.0/24",
   ]
   asia_udp_4500_range = [
     "103.135.56.0/25",
@@ -69,15 +85,25 @@ locals {
     "159.60.189.0/24",
     "159.60.166.0/24",
     "159.60.164.0/24",
+    "159.60.170.0/24",
+    "159.60.172.0/24",
+    "159.60.184.0/24",
+    "159.60.186.0/24",
   ]
+}
+
+# Derived counts to keep managed prefix list sizes correct
+locals {
+  tcp_80_443_total_entries = length(concat(local.americas_tcp_80_443_range, local.europe_tcp_80_443_range, local.asia_tcp_80_443_range))
+  udp_4500_total_entries   = length(concat(local.americas_udp_4500_range, local.europe_udp_4500_range, local.asia_udp_4500_range))
 }
 
 resource "aws_ec2_managed_prefix_list" "tcp_80" {
   count = var.create_outside_security_group ? 1 : 0
 
-  name           = "XC Cloud TCP 80 IPv4 Subnet Ranges"
+  name           = format("%sXC Cloud TCP 80 IPv4 Subnet Ranges", local.prefix)
   address_family = "IPv4"
-  max_entries    = 30
+  max_entries    = local.tcp_80_443_total_entries
 
   dynamic "entry" {
     for_each =local.americas_tcp_80_443_range
@@ -102,16 +128,20 @@ resource "aws_ec2_managed_prefix_list" "tcp_80" {
       cidr        = entry.value
     }
   }
-
-  tags = var.tags
+  tags = merge(
+    {
+      Name = format("%sXC Cloud TCP 80 IPv4 Subnet Ranges", local.prefix)
+    },
+    var.tags,
+  )
 }
 
 resource "aws_ec2_managed_prefix_list" "tcp_443" {
   count = var.create_outside_security_group ? 1 : 0
   
-  name           = "XC Cloud TCP 443 IPv4 Subnet Ranges"
+  name           = format("%sXC Cloud TCP 443 IPv4 Subnet Ranges", local.prefix)
   address_family = "IPv4"
-  max_entries    = 30
+  max_entries    = local.tcp_80_443_total_entries
 
   dynamic "entry" {
     for_each = local.americas_tcp_80_443_range
@@ -136,16 +166,20 @@ resource "aws_ec2_managed_prefix_list" "tcp_443" {
       cidr        = entry.value
     }
   }
-
-  tags = var.tags
+  tags = merge(
+    {
+      Name = format("%sXC Cloud TCP 443 IPv4 Subnet Ranges", local.prefix)
+    },
+    var.tags,
+  )
 }
 
 resource "aws_ec2_managed_prefix_list" "udp_4500" {
   count = var.create_outside_security_group && var.create_udp_security_group_rules ? 1 : 0
 
-  name           = "XC Cloud UDP 4500 IPv4 Subnet Ranges"
+  name           = format("%sXC Cloud UDP 4500 IPv4 Subnet Ranges", local.prefix)
   address_family = "IPv4"
-  max_entries    = 30
+  max_entries    = local.udp_4500_total_entries
 
   dynamic "entry" {
     for_each = local.americas_udp_4500_range
@@ -170,8 +204,12 @@ resource "aws_ec2_managed_prefix_list" "udp_4500" {
       cidr        = entry.value
     }
   }
-
-  tags = var.tags
+  tags = merge(
+    {
+      Name = format("%sXC Cloud UDP 4500 IPv4 Subnet Ranges", local.prefix)
+    },
+    var.tags,
+  )
 }
 
 resource "aws_security_group" "outside" {
@@ -180,6 +218,8 @@ resource "aws_security_group" "outside" {
   description = "Outside security group"
   vpc_id      = var.vpc_id
   name        = format("%soutside-sg", local.prefix)
+
+  revoke_rules_on_delete = true
 
   egress {
     from_port        = 0
@@ -236,9 +276,11 @@ resource "aws_security_group" "outside" {
 resource "aws_security_group" "inside" {
   count = var.create_inside_security_group ? 1 : 0
 
-  description = "Inside security group for"
+  description = "Inside security group"
   vpc_id      = var.vpc_id
   name        = format("%sinside-sg", local.prefix)
+
+  revoke_rules_on_delete = true
 
   egress {
     from_port        = 0

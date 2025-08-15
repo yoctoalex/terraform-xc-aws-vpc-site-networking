@@ -24,6 +24,12 @@ locals {
   az_names                  = length(var.az_names) > 0 ? var.az_names : slice(data.aws_availability_zones.available.names, 0, max(local.outside_subnets_len, local.local_subnets_len, local.inside_subnets_len, local.workload_subnets_len))
 }
 
+# Derived toggles to ensure resources are created only when needed
+locals {
+  outside_rt_needed                   = (local.outside_subnets_len > 0 || local.local_subnets_len > 0)
+  create_outside_route_table_actual   = var.create_outside_route_table && local.outside_rt_needed
+}
+
 resource "aws_vpc" "this" {
   count = local.create_vpc ? 1 : 0
 
@@ -47,6 +53,7 @@ resource "aws_subnet" "outside" {
   availability_zone = element(local.az_names, count.index)
   cidr_block        = element(var.outside_subnets, count.index)
   vpc_id            = local.vpc_id
+  map_public_ip_on_launch = var.map_public_ip_outside
 
   tags = merge(
     {
@@ -66,6 +73,7 @@ resource "aws_subnet" "local" {
   availability_zone = element(local.az_names, count.index)
   cidr_block        = element(var.local_subnets, count.index)
   vpc_id            = local.vpc_id
+  map_public_ip_on_launch = var.map_public_ip_local
 
   tags = merge(
     {
@@ -85,6 +93,7 @@ resource "aws_subnet" "inside" {
   availability_zone = element(local.az_names, count.index)
   cidr_block        = element(var.inside_subnets, count.index)
   vpc_id            = local.vpc_id
+  map_public_ip_on_launch = var.map_public_ip_inside
 
   tags = merge(
     {
@@ -104,6 +113,7 @@ resource "aws_subnet" "workload" {
   availability_zone = element(local.az_names, count.index)
   cidr_block        = element(var.workload_subnets, count.index)
   vpc_id            = local.vpc_id
+  map_public_ip_on_launch = var.map_public_ip_workload
 
   tags = merge(
     {
@@ -118,7 +128,7 @@ resource "aws_subnet" "workload" {
 }
 
 resource "aws_route_table" "outside" {
-  count = var.create_outside_route_table && (null != var.outside_subnets || null != var.local_subnets) ? 1 : 0
+  count = local.create_outside_route_table_actual ? 1 : 0
 
   vpc_id = local.vpc_id
 
@@ -135,21 +145,21 @@ resource "aws_route_table" "outside" {
 }
 
 resource "aws_route_table_association" "outside" {
-  count = var.create_outside_route_table ? local.outside_subnets_len : 0
+  count = local.create_outside_route_table_actual ? local.outside_subnets_len : 0
 
   subnet_id      = element(aws_subnet.outside[*].id, count.index)
   route_table_id = aws_route_table.outside[0].id
 }
 
 resource "aws_route_table_association" "local" {
-  count = var.create_outside_route_table ? local.local_subnets_len : 0
+  count = local.create_outside_route_table_actual ? local.local_subnets_len : 0
 
   subnet_id      = element(aws_subnet.local[*].id, count.index)
   route_table_id = aws_route_table.outside[0].id
 }
 
 resource "aws_route" "internet_gateway" {
-  count = var.create_internet_gateway ? 1 : 0
+  count = var.create_internet_gateway && local.create_outside_route_table_actual ? 1 : 0
 
   route_table_id         = aws_route_table.outside[0].id
   destination_cidr_block = "0.0.0.0/0"
@@ -177,6 +187,9 @@ resource "aws_default_security_group" "default" {
   count = local.create_vpc ? 1 : 0
 
   vpc_id = local.vpc_id
+
+  revoke_rules_on_delete = true
+  # Hardened default behavior: no ingress and no egress
 
   tags = merge(
     {

@@ -41,6 +41,30 @@ variable "create_udp_security_group_rules" {
   default     = true
 }
 
+variable "map_public_ip_outside" {
+  description = "If true, auto-assign public IPv4 addresses on outside subnets."
+  type        = bool
+  default     = false
+}
+
+variable "map_public_ip_inside" {
+  description = "If true, auto-assign public IPv4 addresses on inside subnets."
+  type        = bool
+  default     = false
+}
+
+variable "map_public_ip_workload" {
+  description = "If true, auto-assign public IPv4 addresses on workload subnets."
+  type        = bool
+  default     = false
+}
+
+variable "map_public_ip_local" {
+  description = "If true, auto-assign public IPv4 addresses on local subnets."
+  type        = bool
+  default     = false
+}
+
 variable "tags" {
   description = "A map of tags to add to all resources."
   type        = map(string)
