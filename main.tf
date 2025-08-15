@@ -41,7 +41,8 @@ resource "aws_vpc" "this" {
 
   tags = merge(
     {
-      Name = local.vpc_name
+      Name        = local.vpc_name
+      Environment = var.environment
     },
     var.tags,
   )
@@ -134,7 +135,8 @@ resource "aws_route_table" "outside" {
 
   tags = merge(
     {
-      Name = format("%s-outside-rt", local.vpc_name)
+      Name        = format("%s-outside-rt", local.vpc_name)
+      Environment = var.environment
     },
     var.tags,
   )
@@ -173,7 +175,8 @@ resource "aws_internet_gateway" "this" {
 
   tags = merge(
     {
-      Name = format("%s-igw", local.vpc_name)
+      Name        = format("%s-igw", local.vpc_name)
+      Environment = var.environment
     },
     var.tags,
   )
@@ -193,7 +196,8 @@ resource "aws_default_security_group" "default" {
 
   tags = merge(
     {
-      Name = format("%s-default-sg", local.vpc_name)
+      Name        = format("%s-default-sg", local.vpc_name)
+      Environment = var.environment
     },
     var.tags,
   )

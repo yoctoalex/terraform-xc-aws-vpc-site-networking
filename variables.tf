@@ -71,6 +71,12 @@ variable "tags" {
   default     = {}
 }
 
+variable "environment" {
+  description = "Environment name (e.g., dev, staging, prod)"
+  type        = string
+  default     = "dev"
+}
+
 variable "az_names" {
   description = "Availability Zone Names for Subnets."
   type        = list(string)

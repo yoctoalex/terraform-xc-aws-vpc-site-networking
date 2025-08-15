@@ -14,22 +14,22 @@ output "vpc_cidr" {
 }
 
 output "outside_subnet_ids" {
-  value       = aws_subnet.outside.*.id
+  value       = aws_subnet.outside[*].id
   description = "The IDs of the outside subnets."
 }
 
 output "inside_subnet_ids" {
-  value       = aws_subnet.inside.*.id
+  value       = aws_subnet.inside[*].id
   description = "The IDs of the inside subnets."
 }
 
 output "workload_subnet_ids" {
-  value       = aws_subnet.workload.*.id
+  value       = aws_subnet.workload[*].id
   description = "The IDs of the workload subnets."
 }
 
 output "local_subnet_ids" {
-  value       = aws_subnet.local.*.id
+  value       = aws_subnet.local[*].id
   description = "The IDs of the local subnets."
 }
 
