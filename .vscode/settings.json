@@ -1,12 +1,6 @@
 {
-  "terraform.validation.enabled": true,
   "terraform.validation.enableEnhancedValidation": true,
-  "terraform.experimentalFeatures.validateOnSave": true,
   "terraform.languageServer.enable": true,
-  "terraform.languageServer.args": [
-    "serve"
-  ],
-  "terraform.format.enable": true,
   "terraform.codelens.referenceCount": true,
   "files.associations": {
     "*.tf": "terraform",
@@ -29,7 +23,5 @@
     "editor.formatOnSave": true,
     "editor.insertSpaces": true,
     "editor.tabSize": 2
-  },
-  "problems.decorations.enabled": true,
-  "problems.showCurrentInStatus": true
+  }
 }
