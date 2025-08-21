@@ -39,6 +39,10 @@ resource "aws_vpc" "this" {
   enable_dns_support                   = var.vpc_enable_dns_support
   enable_network_address_usage_metrics = var.vpc_enable_network_address_usage_metrics
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
   tags = merge(
     {
       Name        = local.vpc_name
@@ -55,6 +59,10 @@ resource "aws_subnet" "outside" {
   cidr_block              = element(var.outside_subnets, count.index)
   vpc_id                  = local.vpc_id
   map_public_ip_on_launch = var.map_public_ip_outside
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 
   tags = merge(
     {
@@ -76,6 +84,10 @@ resource "aws_subnet" "local" {
   vpc_id                  = local.vpc_id
   map_public_ip_on_launch = var.map_public_ip_local
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
   tags = merge(
     {
       Name = format("%s-local-%s", local.vpc_name, element(local.az_names, count.index))
@@ -95,6 +107,10 @@ resource "aws_subnet" "inside" {
   cidr_block              = element(var.inside_subnets, count.index)
   vpc_id                  = local.vpc_id
   map_public_ip_on_launch = var.map_public_ip_inside
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 
   tags = merge(
     {
@@ -116,6 +132,10 @@ resource "aws_subnet" "workload" {
   vpc_id                  = local.vpc_id
   map_public_ip_on_launch = var.map_public_ip_workload
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
   tags = merge(
     {
       Name = format("%s-workload-%s", local.vpc_name, element(local.az_names, count.index))
@@ -132,6 +152,10 @@ resource "aws_route_table" "outside" {
   count = local.create_outside_route_table_actual ? 1 : 0
 
   vpc_id = local.vpc_id
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 
   tags = merge(
     {
@@ -173,6 +197,10 @@ resource "aws_internet_gateway" "this" {
 
   vpc_id = local.vpc_id
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
   tags = merge(
     {
       Name        = format("%s-igw", local.vpc_name)
@@ -191,8 +219,11 @@ resource "aws_default_security_group" "default" {
 
   vpc_id = local.vpc_id
 
-  revoke_rules_on_delete = true
-  # Hardened default behavior: no ingress and no egress
+  revoke_rules_on_delete = false
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 
   tags = merge(
     {

@@ -63,7 +63,7 @@ This module implements security best practices:
 - **Private by default**: All subnets disable auto-assign public IP by default
 - **Locked down default SG**: Default security group has no ingress or egress rules
 - **XC IP whitelisting**: Security groups use managed prefix lists with F5 XC IP ranges
-- **Lifecycle protection**: Security groups use `revoke_rules_on_delete = true`
+- **Lifecycle protection**: Security groups use `revoke_rules_on_delete = false`
 
 ## Development
 

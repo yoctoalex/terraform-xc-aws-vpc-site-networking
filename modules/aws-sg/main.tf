@@ -128,6 +128,11 @@ resource "aws_ec2_managed_prefix_list" "tcp_80" {
       cidr        = entry.value
     }
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
   tags = merge(
     {
       Name = format("%sXC Cloud TCP 80 IPv4 Subnet Ranges", local.prefix)
@@ -166,6 +171,11 @@ resource "aws_ec2_managed_prefix_list" "tcp_443" {
       cidr        = entry.value
     }
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
   tags = merge(
     {
       Name = format("%sXC Cloud TCP 443 IPv4 Subnet Ranges", local.prefix)
@@ -204,6 +214,11 @@ resource "aws_ec2_managed_prefix_list" "udp_4500" {
       cidr        = entry.value
     }
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
   tags = merge(
     {
       Name = format("%sXC Cloud UDP 4500 IPv4 Subnet Ranges", local.prefix)
@@ -219,7 +234,11 @@ resource "aws_security_group" "outside" {
   vpc_id      = var.vpc_id
   name        = format("%soutside-sg", local.prefix)
 
-  revoke_rules_on_delete = true
+  revoke_rules_on_delete = false
+
+  lifecycle {
+    ignore_changes = [description, tags]
+  }
 
   egress {
     from_port        = 0
@@ -280,7 +299,11 @@ resource "aws_security_group" "inside" {
   vpc_id      = var.vpc_id
   name        = format("%sinside-sg", local.prefix)
 
-  revoke_rules_on_delete = true
+  revoke_rules_on_delete = false
+
+  lifecycle {
+    ignore_changes = [description, tags]
+  }
 
   egress {
     from_port        = 0
