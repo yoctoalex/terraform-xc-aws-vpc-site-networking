@@ -161,7 +161,7 @@ resource "aws_route_table_association" "local" {
 }
 
 resource "aws_route" "internet_gateway" {
-  count = var.create_internet_gateway && local.create_outside_route_table_actual ? 1 : 0
+  count = var.create_outside_default_route && local.create_outside_route_table_actual ? 1 : 0
 
   route_table_id         = aws_route_table.outside[0].id
   destination_cidr_block = "0.0.0.0/0"
